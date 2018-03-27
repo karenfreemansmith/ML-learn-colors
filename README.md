@@ -1,2 +1,2 @@
-# learn-colors
-Experimenting with homegrown neural network to recognize colors
+# Teach Your Browser Colors
+Experimenting with homegrown neural network to recognize colors. 

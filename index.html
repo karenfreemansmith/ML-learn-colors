@@ -2,16 +2,27 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Learn Colors</title>
+  <title>Teach Your Browser to Recognize Colors</title>
   <style>
   body { width: 60%; margin: 10% auto; }
+  h4 { text-align: center; }
   div{ width:49%; float:left; }
   input[type="color"] {	border: none; padding: 2px; width: 128px; height: 128px; }
   .supervise{ display:none }
   </style>
 </head>
 <body>
-  <h1>Learn Colors</h1>
+  <h1>Teach Your Browser to Recognize Colors</h1>
+  <h4><a href="https://github.com/karenfreemansmith/learn-colors/">View this project on GitHub</a></h4>
+  <p>This is an experiment in machine learning that uses a very basic neural network to train your browser to recognize colors. It only has one hidden layer, which looks at the RGB value of the color.</p>
+  <h3>Instructions</h3>
+  <ul>
+    <li>Click on the colored square to select a color.</li>
+    <li>Click on the button to see what color your browser thinks the square is.</li>
+    <li>If the answer is correct, select the correct button to continue.</li>
+    <li>If the answer is wrong, select the closest color from the drop-down to continue.</li>
+  </ul>
+  <p>The original training set has only 12 basic colors, so the closer the color you select is to the "pure" color, the more likely the browser is to recognize it. As you progress through the training, the guesses should improve by... having less "NOT FOUND" colors, and more correct guesses.</p>
   <div>
     <h1>Percent Trained: <span id="trained"></span></h1>
     <input type="color" id="cc"><br>
@@ -37,6 +48,7 @@
       </select>
     </div>
   </div>
+
   <script>
   localStorage.removeItem("colorset");
   //localStorage.removeItem("ruleset");

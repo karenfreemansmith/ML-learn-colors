@@ -3,13 +3,19 @@
 <head>
   <meta charset="utf-8">
   <title>Learn Colors</title>
-  <style>body { width: 60%; margin: 10% auto; } div{ width:49%; float:left; } .supervise{ display:none }</style>
+  <style>
+  body { width: 60%; margin: 10% auto; }
+  div{ width:49%; float:left; }
+  input[type="color"] {	border: none; padding: 2px; width: 128px; height: 128px; }
+  .supervise{ display:none }
+  </style>
 </head>
 <body>
   <h1>Learn Colors</h1>
   <div>
-    <input type="color" id="cc">
-    <input type="submit" onclick="showColor()">
+    <h1>Percent Trained: <span id="trained"></span></h1>
+    <input type="color" id="cc"><br>
+    <input type="submit" value="What is this color?" onclick="showColor()">
   </div>
   <div>
     <h1 id="result"></h1>
@@ -19,9 +25,23 @@
     </div>
   </div>
   <script>
+  // localStorage.removeItem("colorset");
+  // localStorage.removeItem("ruleset");
+  var colorset = getColors();
+  var colorCode = document.getElementById('cc').value;
+  var currentGuess = "";
+  var correctGuesses = 0;
+  var totalGuesses = 0;
+
     function showColor() {
-      const colorCode = document.getElementById('cc').value;
-      document.getElementById('result').innerHTML = "The color is: " + analyzeColor(colorCode);
+      colorCode = document.getElementById('cc').value;
+      if(totalGuesses>0) {
+        document.getElementById('trained').innerHTML = correctGuesses/totalGuesses + "%";
+      } else {
+        document.getElementById('trained').innerHTML = "0%";
+      }
+      currentGuess = analyzeColor(colorCode);
+      document.getElementById('result').innerHTML = "The color is: " + currentGuess;
       document.getElementById('feedback').style.display = "block";
     }
     function analyzeColor(cc) {
@@ -34,18 +54,81 @@
       const red = getRed(r);
       const green = getGreen(g);
       const blue = getBlue(b);
-      let guess = hl();
+      let guess = hl(red, green, blue);
       return guess;
     }
-    function hl() {
-      // do something with the array to test the color and guess what the color name is.
-      return "gray";
+    function hl(r,g,b) {
+      alert(r + ", " + g + ", " + b)
+      var answerSet = [];
+      var i=0;
+      var ruleset = getRules();
+      console.log(ruleset);
+      ruleset.forEach(function(rule) {
+        if(
+          (r<=parseFloat(rule.maxR).toFixed(3) && r>=parseFloat(rule.minR).toFixed(3)) &&
+          (g<=parseFloat(rule.maxG).toFixed(3) && g>=parseFloat(rule.minG).toFixed(3)) &&
+          (b<=parseFloat(rule.maxB).toFixed(3) && b>=parseFloat(rule.minB).toFixed(3))) {
+            answerSet.push(rule.name)
+        }
+      });
+
+      // return a random color from the set
+      console.log(answerSet);
+      if(answerSet.length>0){
+        i = Math.floor(Math.random()*answerSet.length);
+        return answerSet[i];
+      } else {
+        return "GRAY";
+      }
+
     }
-    function verify() {
-      // add color to colorset with guessed name
+
+    function Rule(n, minR, maxR, minG, maxG, minB, maxB) {
+      this.name = n;
+      this.minR = minR;
+      this.maxR = maxR;
+      this.minG = minG;
+      this.maxG = maxG;
+      this.minB = minB;
+      this.maxB = maxB;
+    };
+    function createRules() {
+      var ruleset=[];
+      var rule;
+      const possibleAnswers = ["white","black","purple","red","green","yellow","orange","blue","brown","gray","pink","aqua"];
+      possibleAnswers.forEach(function(answer) {
+        var minR=0.5, maxR=0.5, minG=0.5, maxG=0.5, minB=0.5, maxB=0.5;
+        colorset.forEach(function(item) {
+          if(item.name===answer) {
+            if((item.r) > maxR) {maxR=(item.r);} else {maxR=(item.r)+0.25;}
+            if((item.g) > maxG) {maxG=(item.g);} else {maxG=(item.g)+0.25;}
+            if((item.b) > maxB) {maxB=(item.b);} else {maxB=(item.b)+0.25;}
+            if((item.r) < minR) {minR=(item.r);} else {minR=(item.r)-0.25;}
+            if((item.g) < minG) {minG=(item.g);} else {minG=(item.g)-0.25;}
+            if((item.b) < minB) {minB=(item.b);} else {minB=(item.b)-0.25;}
+            rule = new Rule(answer, minR, maxR, minG, maxG, minB, maxB);
+            ruleset.push(rule);
+          }
+        });
+      });
+
+      localStorage.setItem("ruleset", JSON.stringify(ruleset));
+      console.log(ruleset);
     }
     function fix() {
+      totalGuesses++;
+      document.getElementById('feedback').style.display = "none";
       // don't add color, maybe do something else
+      // change to a select box with possible color names and save the color picked
+    }
+    function verify() {
+      var tc = new TestColor(getRed(colorCode.substring(1,3)), getGreen(colorCode.substring(3,5)), getBlue(colorCode.substring(5,7)),currentGuess);
+      colorset.push(tc);
+      saveColors(colorset);
+      correctGuesses++;
+      totalGuesses++;
+      document.getElementById('feedback').style.display = "none";
+      createRules();
     }
     function getRed(r) {
       const red = parseInt(r, 16);
@@ -66,27 +149,27 @@
       var colorset = [];
       var tc = new TestColor(1.000, 1.000, 1.000,"white");
       colorset.push(tc);
-      var tc = new TestColor(0.000, 0.000, 0.000,"black");
+      tc = new TestColor(0.000, 0.000, 0.000,"black");
       colorset.push(tc);
-      var tc = new TestColor(0.251, 0.000, 0.502,"purple");
+      tc = new TestColor(0.251, 0.000, 0.502,"purple");
       colorset.push(tc);
-      var tc = new TestColor(0.502, 0.000, 0.000,"red");
+      tc = new TestColor(0.502, 0.000, 0.000,"red");
       colorset.push(tc);
-      var tc = new TestColor(0.000, 0.502, 0.000,"green");
+      tc = new TestColor(0.000, 0.502, 0.000,"green");
       colorset.push(tc);
-      var tc = new TestColor(1.000, 1.000, 0.400,"yellow");
+      tc = new TestColor(1.000, 1.000, 0.400,"yellow");
       colorset.push(tc);
-      var tc = new TestColor(1.000, 0.502, 0.000,"orange");
+      tc = new TestColor(1.000, 0.502, 0.000,"orange");
       colorset.push(tc);
-      var tc = new TestColor(0.000, 0.000, 1.000,"blue");
+      tc = new TestColor(0.000, 0.000, 1.000,"blue");
       colorset.push(tc);
-      var tc = new TestColor(0.502, 0.251, 0.000,"brown");
+      tc = new TestColor(0.502, 0.251, 0.000,"brown");
       colorset.push(tc);
-      var tc = new TestColor(0.498, 0.498, 0.498,"gray");
+      tc = new TestColor(0.498, 0.498, 0.498,"gray");
       colorset.push(tc);
-      var tc = new TestColor(1.000, 0.435, 0.812,"pink");
+      tc = new TestColor(1.000, 0.435, 0.812,"pink");
       colorset.push(tc);
-      var tc = new TestColor(0.400, 1.000, 0.800,"aqua");
+      tc = new TestColor(0.400, 1.000, 0.800,"aqua");
       colorset.push(tc);
       return colorset;
     }
@@ -95,27 +178,27 @@
       this.g = g;
       this.b = b;
       this.name = n;
-    }
+    };
     function getColors() {
-      var colorset=[];
       if(localStorage.colorset) {
         colorset = JSON.parse(localStorage.getItem("colorset"));
       } else {
         colorset = train();
       }
+      console.log(colorset);
       return colorset;
     }
-
     function saveColors(colorset) {
       localStorage.setItem("colorset", JSON.stringify(colorset));
     }
-
-    function resetColors() {
-      localStorage.removeItem("colorset");
+    function getRules() {
+      if(localStorage.ruleset) {
+        ruleset = JSON.parse(localStorage.getItem("ruleset"));
+      } else {
+        ruleset = createRules();
+      }
+      return ruleset;
     }
-
-    var colorset = getColors();
-    console.log(colorset);
   </script>
 </body>
 </html>

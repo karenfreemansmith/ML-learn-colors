@@ -21,12 +21,25 @@
     <h1 id="result"></h1>
     <div class="supervise" id="feedback">
       <input type="submit" onclick="verify()" value="correct">
-      <input type="submit" onclick="fix()" value="wrong">
+      <select id="correctColor" onchange="fix()">
+        <option value="white">white</option>
+        <option value="yellow">yellow</option>
+        <option value="pink">pink</option>
+        <option value="orange">orange</option>
+        <option value="red">red</option>
+        <option value="purple">purple</option>
+        <option value="blue">blue</option>
+        <option value="green">green</option>
+        <option value="aqua">aqua</option>
+        <option value="gray">gray</option>
+        <option value="brown">brown</option>
+        <option value="black">black</option>
+      </select>
     </div>
   </div>
   <script>
-  // localStorage.removeItem("colorset");
-  // localStorage.removeItem("ruleset");
+  localStorage.removeItem("colorset");
+  //localStorage.removeItem("ruleset");
   var colorset = getColors();
   var colorCode = document.getElementById('cc').value;
   var currentGuess = "";
@@ -36,7 +49,8 @@
     function showColor() {
       colorCode = document.getElementById('cc').value;
       if(totalGuesses>0) {
-        document.getElementById('trained').innerHTML = correctGuesses/totalGuesses + "%";
+        var pt = (correctGuesses/totalGuesses)*100
+        document.getElementById('trained').innerHTML = pt.toFixed(1) + "%";
       } else {
         document.getElementById('trained').innerHTML = "0%";
       }
@@ -58,7 +72,6 @@
       return guess;
     }
     function hl(r,g,b) {
-      alert(r + ", " + g + ", " + b)
       var answerSet = [];
       var i=0;
       var ruleset = getRules();
@@ -71,64 +84,28 @@
             answerSet.push(rule.name)
         }
       });
-
       // return a random color from the set
       console.log(answerSet);
       if(answerSet.length>0){
         i = Math.floor(Math.random()*answerSet.length);
         return answerSet[i];
       } else {
-        return "GRAY";
+        return "NO MATCH FOUND";
       }
-
-    }
-
-    function Rule(n, minR, maxR, minG, maxG, minB, maxB) {
-      this.name = n;
-      this.minR = minR;
-      this.maxR = maxR;
-      this.minG = minG;
-      this.maxG = maxG;
-      this.minB = minB;
-      this.maxB = maxB;
-    };
-    function createRules() {
-      var ruleset=[];
-      var rule;
-      const possibleAnswers = ["white","black","purple","red","green","yellow","orange","blue","brown","gray","pink","aqua"];
-      possibleAnswers.forEach(function(answer) {
-        var minR=0.5, maxR=0.5, minG=0.5, maxG=0.5, minB=0.5, maxB=0.5;
-        colorset.forEach(function(item) {
-          if(item.name===answer) {
-            if((item.r) > maxR) {maxR=(item.r);} else {maxR=(item.r)+0.25;}
-            if((item.g) > maxG) {maxG=(item.g);} else {maxG=(item.g)+0.25;}
-            if((item.b) > maxB) {maxB=(item.b);} else {maxB=(item.b)+0.25;}
-            if((item.r) < minR) {minR=(item.r);} else {minR=(item.r)-0.25;}
-            if((item.g) < minG) {minG=(item.g);} else {minG=(item.g)-0.25;}
-            if((item.b) < minB) {minB=(item.b);} else {minB=(item.b)-0.25;}
-            rule = new Rule(answer, minR, maxR, minG, maxG, minB, maxB);
-            ruleset.push(rule);
-          }
-        });
-      });
-
-      localStorage.setItem("ruleset", JSON.stringify(ruleset));
-      console.log(ruleset);
     }
     function fix() {
       totalGuesses++;
       document.getElementById('feedback').style.display = "none";
-      // don't add color, maybe do something else
-      // change to a select box with possible color names and save the color picked
-    }
-    function verify() {
-      var tc = new TestColor(getRed(colorCode.substring(1,3)), getGreen(colorCode.substring(3,5)), getBlue(colorCode.substring(5,7)),currentGuess);
+      var tc = new TestColor(parseFloat(getRed(colorCode.substring(1,3))), parseFloat(getGreen(colorCode.substring(3,5))), parseFloat(getBlue(colorCode.substring(5,7))),document.getElementById('correctColor').value);
       colorset.push(tc);
       saveColors(colorset);
+      updateRules(document.getElementById('correctColor').value);
+    }
+    function verify() {
       correctGuesses++;
       totalGuesses++;
       document.getElementById('feedback').style.display = "none";
-      createRules();
+      updateRules(currentGuess);
     }
     function getRed(r) {
       const red = parseInt(r, 16);
@@ -191,6 +168,35 @@
     function saveColors(colorset) {
       localStorage.setItem("colorset", JSON.stringify(colorset));
     }
+    function Rule(n, minR, maxR, minG, maxG, minB, maxB) {
+      this.name = n;
+      this.minR = minR;
+      this.maxR = maxR;
+      this.minG = minG;
+      this.maxG = maxG;
+      this.minB = minB;
+      this.maxB = maxB;
+    };
+
+    function updateRules(colorName) {
+      var ruleset=getRules();
+      ruleset.forEach(function(rule) {
+        if(rule.name==colorName) {
+          colorset.forEach(function(item) {
+            if(item.name===colorName) {
+              if((item.r) > rule.maxR) {rule.maxR=(item.r)+0.1;}
+              if((item.g) > rule.maxG) {rule.maxG=(item.g)+0.1;}
+              if((item.b) > rule.maxB) {rule.maxB=(item.b)+0.1;}
+              if((item.r) < rule.minR) {rule.minR=(item.r)-0.1;}
+              if((item.g) < rule.minG) {rule.minG=(item.g)-0.1;}
+              if((item.b) < rule.minB) {rule.minB=(item.b)-0.1;}
+            }
+          });
+        }
+      });
+      localStorage.setItem("ruleset", JSON.stringify(ruleset));
+      console.log(ruleset);
+    }
     function getRules() {
       if(localStorage.ruleset) {
         ruleset = JSON.parse(localStorage.getItem("ruleset"));
@@ -198,6 +204,27 @@
         ruleset = createRules();
       }
       return ruleset;
+    }
+    function createRules() {
+      var ruleset=[];
+      var rule;
+      const possibleAnswers = ["white","black","purple","red","green","yellow","orange","blue","brown","gray","pink","aqua"];
+      possibleAnswers.forEach(function(answer) {
+        var minR=0.5, maxR=0.5, minG=0.5, maxG=0.5, minB=0.5, maxB=0.5;
+        colorset.forEach(function(item) {
+          if(item.name===answer) {
+            if((item.r) > maxR) {maxR=(item.r)+0.1;}
+            if((item.g) > maxG) {maxG=(item.g)+0.1;}
+            if((item.b) > maxB) {maxB=(item.b)+0.1;}
+            if((item.r) < minR) {minR=(item.r)-0.1;}
+            if((item.g) < minG) {minG=(item.g)-0.1;}
+            if((item.b) < minB) {minB=(item.b)-0.1;}
+          }
+        });
+        rule = new Rule(answer, minR, maxR, minG, maxG, minB, maxB);
+        ruleset.push(rule);
+      });
+      localStorage.setItem("ruleset", JSON.stringify(ruleset));
     }
   </script>
 </body>

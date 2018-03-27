@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Learn Colors</title>
+  <style>body { width: 60%; margin: 10% auto; } div{ width:49%; float:left; } .supervise{ display:none }</style>
+</head>
+<body>
+  <h1>Learn Colors</h1>
+  <div>
+    <input type="color" id="cc">
+    <input type="submit" onclick="showColor()">
+  </div>
+  <div>
+    <h1 id="result"></h1>
+    <div class="supervise" id="feedback">
+      <input type="submit" onclick="verify()" value="correct">
+      <input type="submit" onclick="fix()" value="wrong">
+    </div>
+  </div>
+  <script>
+    function showColor() {
+      const colorCode = document.getElementById('cc').value;
+      document.getElementById('result').innerHTML = "The color is: " + analyzeColor(colorCode);
+      document.getElementById('feedback').style.display = "block";
+    }
+    function analyzeColor(cc) {
+      const r = cc.substring(1,3);
+      const g = cc.substring(3,5);
+      const b = cc.substring(5,7);
+      return nn(r,g,b);
+    }
+    function nn(r,g,b) {
+      const red = getRed(r);
+      const green = getGreen(g);
+      const blue = getBlue(b);
+      let guess = hl();
+      return guess;
+    }
+    function hl() {
+      // do something with the array to test the color and guess what the color name is.
+      return "gray";
+    }
+    function verify() {
+      // add color to colorset with guessed name
+    }
+    function fix() {
+      // don't add color, maybe do something else
+    }
+    function getRed(r) {
+      const red = parseInt(r, 16);
+      const perc = red/255;
+      return perc.toFixed(3);
+    }
+    function getGreen(g) {
+      const green = parseInt(g, 16);
+      const perc = green/255;
+      return perc.toFixed(3);
+    }
+    function getBlue(b) {
+      const blue = parseInt(b, 16);
+      const perc = blue/255;
+      return perc.toFixed(3);
+    }
+    function train() {
+      var colorset = [];
+      var tc = new TestColor(1.000, 1.000, 1.000,"white");
+      colorset.push(tc);
+      var tc = new TestColor(0.000, 0.000, 0.000,"black");
+      colorset.push(tc);
+      var tc = new TestColor(0.251, 0.000, 0.502,"purple");
+      colorset.push(tc);
+      var tc = new TestColor(0.502, 0.000, 0.000,"red");
+      colorset.push(tc);
+      var tc = new TestColor(0.000, 0.502, 0.000,"green");
+      colorset.push(tc);
+      var tc = new TestColor(1.000, 1.000, 0.400,"yellow");
+      colorset.push(tc);
+      var tc = new TestColor(1.000, 0.502, 0.000,"orange");
+      colorset.push(tc);
+      var tc = new TestColor(0.000, 0.000, 1.000,"blue");
+      colorset.push(tc);
+      var tc = new TestColor(0.502, 0.251, 0.000,"brown");
+      colorset.push(tc);
+      var tc = new TestColor(0.498, 0.498, 0.498,"gray");
+      colorset.push(tc);
+      var tc = new TestColor(1.000, 0.435, 0.812,"pink");
+      colorset.push(tc);
+      var tc = new TestColor(0.400, 1.000, 0.800,"aqua");
+      colorset.push(tc);
+      return colorset;
+    }
+    function TestColor(r,g,b,n){
+      this.r = r;
+      this.g = g;
+      this.b = b;
+      this.name = n;
+    }
+    function getColors() {
+      var colorset=[];
+      if(localStorage.colorset) {
+        colorset = JSON.parse(localStorage.getItem("colorset"));
+      } else {
+        colorset = train();
+      }
+      return colorset;
+    }
+
+    function saveColors(colorset) {
+      localStorage.setItem("colorset", JSON.stringify(colorset));
+    }
+
+    function resetColors() {
+      localStorage.removeItem("colorset");
+    }
+
+    var colorset = getColors();
+    console.log(colorset);
+  </script>
+</body>
+</html>
